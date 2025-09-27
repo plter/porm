@@ -3,14 +3,12 @@
 """
 from __future__ import annotations
 
+import aiomysql
 from aiomysql import Pool, Connection, DictCursor
 from pydal import DAL
-from pymysql import IntegrityError
 from pymysql.converters import escape_string
 
 from porm.connectors.base_connector import BaseConnector
-import aiomysql
-
 from porm.connectors.datasource_connection import DataSourceConnection
 
 

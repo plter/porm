@@ -7,16 +7,31 @@ from porm.connectors.datasource_connection import DataSourceConnection
 
 class DataSourceTests(unittest.TestCase):
 
-    def test_create_datasource(self):
-        ds = DataSource(dialect="mysql", host="127.0.0.1", port=5036, db="porm", user="root", pwd="wM1LKvy8")
-        print(ds)
+    def test_simple_execute(self):
+        async def main():
+            ds = DataSource(dialect="mysql", host="127.0.0.1", port=5036, db="porm", user="root", pwd="wM1LKvy8")
+            ds.define_table(
+                "auth_user",
+                Field("name"),
+                Field("login"),
+                Field("first_name"),
+                Field("last_name"),
+                Field("age")
+            )
+
+            async def task(conn: DataSourceConnection):
+                print(await conn.select(conn.auth_user.id > 0))
+
+            await ds.execute(task)
+
+        asyncio.run(main())
 
     def test_connect_mysql(self):
         async def entrypoint():
             ds = DataSource(dialect="mysql", host="127.0.0.1", port=5036, db="porm", user="root", pwd="wM1LKvy8")
             ds.define_table("auth_user", Field("name"))
 
-            @ds.wrapper
+            @ds.with_connection
             async def task(c: DataSourceConnection):
                 # await conn.execute("select * from auth_user")
                 # r = await conn.fetchall()
@@ -33,7 +48,7 @@ class DataSourceTests(unittest.TestCase):
             ds = DataSource(dialect="mysql", host="127.0.0.1", port=5036, db="porm", user="root", pwd="wM1LKvy8")
             ds.define_table("auth_user", Field("name"))
 
-            @ds.wrapper
+            @ds.with_connection
             async def task(c: DataSourceConnection):
                 print(await c.select(c.auth_user.id > 0))
 
@@ -46,7 +61,7 @@ class DataSourceTests(unittest.TestCase):
             ds = DataSource(dialect="mysql", host="127.0.0.1", port=5036, db="porm", user="root", pwd="wM1LKvy8")
             ds.define_table("auth_user", Field("name"))
 
-            @ds.wrapper
+            @ds.with_connection
             async def task(c: DataSourceConnection):
                 print(await c.count(c.auth_user.id > 0))
 
@@ -59,7 +74,7 @@ class DataSourceTests(unittest.TestCase):
             ds = DataSource(dialect="mysql", host="127.0.0.1", port=5036, db="porm", user="root", pwd="wM1LKvy8")
             ds.define_table("auth_user", Field("name"), Field("login"))
 
-            @ds.wrapper
+            @ds.with_connection
             async def task(c: DataSourceConnection):
                 print(await c.insert(
                     c.auth_user, name="Zhang", login="tutu", on_duplicate_key_update=dict(name="Z")
@@ -74,7 +89,7 @@ class DataSourceTests(unittest.TestCase):
             ds = DataSource(dialect="mysql", host="127.0.0.1", port=5036, db="porm", user="root", pwd="wM1LKvy8")
             ds.define_table("auth_user", Field("name"), Field("login"))
 
-            @ds.wrapper
+            @ds.with_connection
             async def task(c: DataSourceConnection):
                 print(await c.update(c.auth_user.name == "Zhang", name="Zhang San"))
 
@@ -94,7 +109,7 @@ class DataSourceTests(unittest.TestCase):
                 Field("age")
             )
 
-            @ds.wrapper
+            @ds.with_connection
             async def task(c: DataSourceConnection):
                 print(await c.upsert(
                     c.auth_user,

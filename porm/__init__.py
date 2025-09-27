@@ -36,14 +36,17 @@ class DataSource:
     def define_table(self, tablename: str, *fields, **kwargs):
         self._dal.define_table(tablename, *fields, **kwargs)
 
-    def wrapper(self, target):
+    def with_connection(self, target):
         async def task(*args, **kwargs):
             async def callback(conn):
                 return await target(conn, *args, **kwargs)
 
-            return await self._connector.execute(callback)
+            return await self.execute(callback)
 
         return task
 
     def connector(self) -> BaseConnector:
         return self._connector
+
+    async def execute(self, callback):
+        return await self._connector.execute(callback)
