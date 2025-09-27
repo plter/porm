@@ -1,7 +1,8 @@
 """
 @author https://yunp.top
 """
-from pydal import DAL, Field
+
+from pydal import DAL
 
 from porm.connectors.mysqlc import MySQLConnector
 from porm.connectors.pgc import PgConnector
@@ -10,7 +11,10 @@ from porm.exceptions.porm_exception import PormException
 
 class DataSource:
 
-    def __init__(self, dialect: str, host: str, port: int, db: str, user: str, pwd: str):
+    def __init__(
+            self, dialect: str, host: str, port: int, db: str, user: str, pwd: str,
+            min_connections=0, max_connections=10
+    ):
         super().__init__()
 
         if dialect == "mysql":
@@ -30,3 +34,12 @@ class DataSource:
 
     def define_table(self, tablename: str, *fields, **kwargs):
         self._dal.define_table(tablename=tablename, *fields, **kwargs)
+
+    def wrapper(self, target):
+        async def task():
+            def callback():
+                ...
+
+            await self._connector.execute(callback)
+
+        return task
