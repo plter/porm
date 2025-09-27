@@ -99,7 +99,7 @@ class DataSourceTests(unittest.TestCase):
                 print(await c.upsert(
                     c.auth_user,
                     data=dict(name="Zhang", first_name="Donald-B", last_name="Trump"),
-                    on_duplicate=dict(name="Li\"1", age=10)
+                    on_duplicate=dict(name="Li'1", age=10)
                 ))
 
             await task()

@@ -6,6 +6,7 @@ from __future__ import annotations
 from aiomysql import Pool, Connection, DictCursor
 from pydal import DAL
 from pymysql import IntegrityError
+from pymysql.converters import escape_string
 
 from porm.connectors.base_connector import BaseConnector
 import aiomysql
@@ -36,14 +37,8 @@ class MySQLConnection(DataSourceConnection):
         query: str = (table._insert(**data)).strip()
         if query[-1] == ";":
             query = query[:-1]
-        update = ", ".join(
-            map(
-                lambda item: item[0] + "='" + str(item[1]).replace("'", "\\'") + "'",
-                on_duplicate.items()
-            )
-        )
+        update = ", ".join(map(lambda item: f"{item[0]}='{escape_string(str(item[1]))}'", on_duplicate.items()))
         query = f"{query} ON DUPLICATE KEY UPDATE {update};"
-        print(query)
         await self.execute(query)
         return self.lastrowid
 
