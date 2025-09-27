@@ -2,10 +2,9 @@
 @author https://yunp.top
 """
 
-from pydal import DAL
+from pydal import DAL, Field
 
-from porm.connectors.mysqlc import MySQLConnector
-from porm.connectors.pgc import PgConnector
+from porm.connectors.base_connector import BaseConnector
 from porm.exceptions.porm_exception import PormException
 
 
@@ -17,13 +16,6 @@ class DataSource:
     ):
         super().__init__()
 
-        if dialect == "mysql":
-            self._connector = MySQLConnector(host, port, db, user, pwd)
-        elif dialect == "postgres":
-            self._connector = PgConnector(host, port, db, user, pwd)
-        else:
-            raise PormException(f"Dialect {dialect} not supported")
-
         self._dal = DAL(
             uri=f"{dialect}://root:password@127.0.0.1/db",
             migrate=False,
@@ -32,14 +24,26 @@ class DataSource:
             pool_size=0
         )
 
+        if dialect == "mysql":
+            from porm.connectors.mysqlc import MySQLConnector
+            self._connector = MySQLConnector(self._dal, host, port, db, user, pwd, min_connections, max_connections)
+        elif dialect == "postgres":
+            from porm.connectors.pgc import PgConnector
+            self._connector = PgConnector(self._dal, host, port, db, user, pwd, min_connections, max_connections)
+        else:
+            raise PormException(f"Dialect {dialect} not supported")
+
     def define_table(self, tablename: str, *fields, **kwargs):
-        self._dal.define_table(tablename=tablename, *fields, **kwargs)
+        self._dal.define_table(tablename, *fields, **kwargs)
 
     def wrapper(self, target):
-        async def task():
-            def callback():
-                ...
+        async def task(*args, **kwargs):
+            async def callback(conn):
+                return await target(conn, *args, **kwargs)
 
-            await self._connector.execute(callback)
+            return await self._connector.execute(callback)
 
         return task
+
+    def connector(self) -> BaseConnector:
+        return self._connector

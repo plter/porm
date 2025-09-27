@@ -1,15 +1,19 @@
 """
 @author https://yunp.top
 """
+from pydal import DAL
 
 
 class BaseConnector:
 
     def __init__(
-            self, host: str, port: int, db: str, user: str, pwd: str,
+            self,
+            dal: DAL,
+            host: str, port: int, db: str, user: str, pwd: str,
             min_connections=0, max_connections=10
     ):
         super().__init__()
+        self._dal = dal
         self._host = host
         self._port = port
         self._db = db
@@ -46,5 +50,12 @@ class BaseConnector:
     def max_connections(self):
         return self._max_connections
 
+    @property
+    def dal(self):
+        return self._dal
+
     async def execute(self, callback):
         raise NotImplementedError()
+
+    async def pool(self):
+        raise NotImplementedError
