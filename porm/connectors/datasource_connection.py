@@ -64,3 +64,6 @@ class DataSourceConnection:
 
     async def upsert(self, table, data: dict, on_duplicate: dict):
         raise NotImplementedError()
+
+    async def delete(self, query):
+        return await self.execute(self._dal(query)._delete())
