@@ -62,7 +62,15 @@ class DataSourceConnection:
     async def update(self, query, **update_fields):
         return await self.execute(self._dal(query)._update(**update_fields))
 
-    async def upsert(self, table, data: dict, on_duplicate: dict):
+    async def upsert(self, table, data: dict, on_duplicate: dict, on_duplicate_fields: list[str] = None):
+        """
+
+        :param table:
+        :param data:
+        :param on_duplicate:
+        :param on_duplicate_fields: Leave this None when you are using mysql,
+        :return:
+        """
         raise NotImplementedError()
 
     async def delete(self, query):

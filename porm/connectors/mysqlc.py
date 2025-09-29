@@ -31,7 +31,7 @@ class MySQLConnection(DataSourceConnection):
     def lastrowid(self):
         return self._cursor.lastrowid
 
-    async def upsert(self, table, data: dict, on_duplicate: dict):
+    async def upsert(self, table, data: dict, on_duplicate: dict, on_duplicate_fields: list[str] = None):
         query: str = (table._insert(**data)).strip()
         if query[-1] == ";":
             query = query[:-1]
